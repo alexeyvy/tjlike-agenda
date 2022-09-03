@@ -2,6 +2,7 @@ package repost
 
 import (
 	"github.com/alexeyvy/tjlike-agenda/domain"
+	"sync"
 )
 
 type entry struct {
@@ -13,10 +14,11 @@ type entry struct {
 type InMemoryStore struct {
 	entries map[int]*entry
 	nextId  int
+	sync.RWMutex
 }
 
 func NewInMemoryStore() *InMemoryStore {
-	return &InMemoryStore{make(map[int]*entry, 0), 1}
+	return &InMemoryStore{make(map[int]*entry, 0), 1, sync.RWMutex{}}
 }
 
 func (s *InMemoryStore) insert(e *entry) {

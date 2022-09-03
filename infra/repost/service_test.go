@@ -7,6 +7,8 @@ import (
 )
 
 func TestSaveAndPickup(t *testing.T) {
+	t.Parallel()
+
 	s := NewService(NewInMemoryStore())
 
 	postedAt, _ := time.Parse(time.RFC822, "02 Jan 06 15:04 MST")
@@ -33,6 +35,8 @@ func TestSaveAndPickup(t *testing.T) {
 }
 
 func TestPurgeIrrelevant(t *testing.T) {
+	t.Parallel()
+
 	var currentTime string
 	now = func() time.Time { a, _ := time.Parse(time.RFC822, currentTime); return a }
 

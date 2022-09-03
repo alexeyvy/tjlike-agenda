@@ -10,6 +10,13 @@ type Store interface {
 	walkAll(func(e *entry))
 	delete(entry)
 }
+type LockableStore interface {
+	Store
+	RLock()
+	RUnlock()
+	Lock()
+	Unlock()
+}
 
 type service struct {
 	s Store
@@ -21,9 +28,17 @@ func NewService(store Store) *service {
 
 var now = time.Now
 
+const hoursBeforePurge = 48
+
 func (r *service) Repost(publication domain.Publication) domain.Repost {
 	repost := domain.NewRepost(publication, now())
 	dbEntry := &entry{repost, false, 0}
+
+	lockableStore, isLockable := r.s.(LockableStore)
+	if isLockable {
+		lockableStore.Lock()
+		defer lockableStore.Unlock()
+	}
 	r.s.insert(dbEntry)
 
 	return repost
@@ -31,6 +46,13 @@ func (r *service) Repost(publication domain.Publication) domain.Repost {
 
 func (r *service) PickUpMostTrending(clearUp bool) []domain.Repost {
 	reposts := make([]domain.Repost, 0)
+
+	lockableStore, isLockable := r.s.(LockableStore)
+	if isLockable {
+		lockableStore.RLock()
+		defer lockableStore.RUnlock()
+	}
+
 	r.s.walkAll(func(e *entry) {
 		if e.RetrievedAtLeastOnce == false {
 			reposts = append(reposts, e.R)
@@ -46,13 +68,20 @@ func (r *service) PickUpMostTrending(clearUp bool) []domain.Repost {
 type PurgeUnreadError struct{}
 
 func (e PurgeUnreadError) Error() string {
-	return "Storage can't be emptied, as there are reposts that have not yet been pulled."
+	return "storage can't be emptied, as there are reposts that have not yet been pulled"
 }
 
 func (r *service) PurgeIrrelevant() error {
-	repostedAtThreshold := now().Add(-48 * time.Hour)
+	repostedAtThreshold := now().Add(-1 * hoursBeforePurge * time.Hour)
 	entriesForDeletion := make([]entry, 0)
 	var unreadFound bool
+
+	lockableStore, isLockable := r.s.(LockableStore)
+	if isLockable {
+		lockableStore.Lock()
+		defer lockableStore.Unlock()
+	}
+
 	r.s.walkAll(func(e *entry) {
 		if e.R.RepostedAt.Before(repostedAtThreshold) {
 			if e.RetrievedAtLeastOnce == false {
@@ -75,6 +104,12 @@ func (r *service) PurgeIrrelevant() error {
 
 func (r *service) ExistsForPublication(publication domain.Publication) bool {
 	var exists bool
+
+	lockableStore, isLockable := r.s.(LockableStore)
+	if isLockable {
+		lockableStore.RLock()
+		defer lockableStore.RUnlock()
+	}
 
 	r.s.walkAll(func(e *entry) {
 		if e.R.Pub.Id == publication.Id {
