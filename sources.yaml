@@ -1,0 +1,23 @@
+scrapers:
+  telegram:
+    parallel: false # Whether to run scraping against all channels at once. FALSE recommended for those scrapers working through UI or severely rate-limited API
+    frequency: 3600 # periodicity of polling, any one polling encompasses traversal of all channels associated with the given scraping (seconds)
+    pause_between_sync_channels: 1 # Only takes effect in parallel mode (parallel=true above) (seconds)
+    channels: # telegram channel IDs
+      - ru2ch_news
+      - dvachannel
+      - holodmedia
+      - theinsider
+      - meduzalive
+      - nevzorovtv
+      - breakingmash
+      - varlamov_news
+      - redakciya_channel
+      - currenttime
+      - shot_shot
+      - tjournal
+      - bbbreaking
+      - novaya_pishet
+      - yoba_m
+      - dwglavnoe
+      - uniannet
