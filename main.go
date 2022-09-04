@@ -59,14 +59,14 @@ type GlobalSelector interface {
 	) domain.Publication
 }
 type RepostWriterService interface {
-	Repost(domain.Publication) domain.Repost
+	Repost(domain.Publication) (domain.Repost, error)
 	ExistsForPublication(domain.Publication) bool
 }
 
 func main() {
 	preferences := initPreferences()
 
-	store := repost.NewInMemoryStore()
+	store := repost.NewFileStore("tjlike_agenda_db.txt")
 	runApi(store)
 
 	scraperPool := []scraperPoolElement{
@@ -127,7 +127,9 @@ func main() {
 				log.Debugf("All channels finished for platform %s", scraperPoolEntry.platformId)
 
 				best := selector.SelectPublication(collectedPublications, repostWriter.ExistsForPublication)
-				repostWriter.Repost(best)
+				if _, err := repostWriter.Repost(best); err != nil {
+					log.Errorf("Repost succeded, however, there was an error when persisting it in the DB: %s", err)
+				}
 
 				log.Infof("Picked most trending publication %s for platform %s", best.Id, scraperPoolEntry.platformId)
 				log.Debugf(
@@ -175,6 +177,11 @@ func runApi(store repost.Store) {
 		if err != nil {
 			log.Error("Error sending API response")
 		}
+		go func() {
+			if err := service.PurgeIrrelevant(); err != nil {
+				log.Errorf("cannot purge irrelevant reposts: %s", err.Error())
+			}
+		}()
 	})
 	log.Info("Running HTTP API on port 35971")
 

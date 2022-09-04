@@ -11,11 +11,14 @@ type Store interface {
 	delete(entry)
 }
 type LockableStore interface {
-	Store
 	RLock()
 	RUnlock()
 	Lock()
 	Unlock()
+}
+type PersistentStore interface {
+	Pull() error
+	Push() error
 }
 
 type service struct {
@@ -23,6 +26,15 @@ type service struct {
 }
 
 func NewService(store Store) *service {
+	persistentStore, isPersistentStore := store.(PersistentStore)
+	if isPersistentStore {
+		if err := persistentStore.Pull(); err != nil {
+			if err != ErrDBNotInited {
+				panic("cannot create repost service due to failed persistentStore.Pull(): " + err.Error())
+			}
+		}
+	}
+
 	return &service{store}
 }
 
@@ -30,7 +42,15 @@ var now = time.Now
 
 const hoursBeforePurge = 48
 
-func (r *service) Repost(publication domain.Publication) domain.Repost {
+type PersistDBFailed struct {
+	originalError error
+}
+
+func (e *PersistDBFailed) Error() string {
+	return "cannot persist DB: " + e.originalError.Error()
+}
+
+func (r *service) Repost(publication domain.Publication) (domain.Repost, error) {
 	repost := domain.NewRepost(publication, now())
 	dbEntry := &entry{repost, false, 0}
 
@@ -41,7 +61,14 @@ func (r *service) Repost(publication domain.Publication) domain.Repost {
 	}
 	r.s.insert(dbEntry)
 
-	return repost
+	persistentStore, isPersistentStore := r.s.(PersistentStore)
+	if isPersistentStore {
+		if err := persistentStore.Push(); err != nil {
+			return repost, &PersistDBFailed{err}
+		}
+	}
+
+	return repost, nil
 }
 
 func (r *service) PickUpMostTrending(clearUp bool) []domain.Repost {
@@ -97,6 +124,13 @@ func (r *service) PurgeIrrelevant() error {
 
 	for _, e := range entriesForDeletion {
 		r.s.delete(e)
+	}
+
+	persistentStore, isPersistentStore := r.s.(PersistentStore)
+	if isPersistentStore {
+		if err := persistentStore.Push(); err != nil {
+			return &PersistDBFailed{err}
+		}
 	}
 
 	return nil
