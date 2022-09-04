@@ -56,7 +56,7 @@ type GlobalSelector interface {
 	SelectPublication(
 		candidates map[domain.Channel][]domain.Publication,
 		exists func(publication domain.Publication) bool,
-	) (domain.Publication, domain.SuggestionRate)
+	) (domain.Publication, domain.SuggestionRate, error)
 }
 type RepostWriterService interface {
 	Repost(domain.Publication, domain.SuggestionRate) (domain.Repost, error)
@@ -126,12 +126,17 @@ func main() {
 
 				log.Debugf("All channels finished for platform %s", scraperPoolEntry.platformId)
 
-				best, suggestionRate := selector.SelectPublication(collectedPublications, repostWriter.ExistsForPublication)
-				if _, err := repostWriter.Repost(best, suggestionRate); err != nil {
-					log.Errorf("Repost succeeded, however, there was an error when persisting it in the DB: %s", err)
+				best, suggestionRate, err := selector.SelectPublication(collectedPublications, repostWriter.ExistsForPublication)
+				if err == domain.ErrExhausted {
+					log.Infof("No trending publications for platform %s so far", scraperPoolEntry.platformId)
 				}
+				if err == nil {
+					if _, err := repostWriter.Repost(best, suggestionRate); err != nil {
+						log.Errorf("Repost succeeded, however, there was an error when persisting it in the DB: %s", err)
+					}
 
-				log.Infof("Picked most trending publication %s for platform %s", best.Id, scraperPoolEntry.platformId)
+					log.Infof("Picked most trending publication %s for platform %s", best.Id, scraperPoolEntry.platformId)
+				}
 				log.Debugf(
 					"Sleeping %d seconds before next traversal for platform %s",
 					scraperPoolEntry.config.Frequency,

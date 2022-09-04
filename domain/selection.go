@@ -1,8 +1,8 @@
 package domain
 
 import (
+	"errors"
 	log "github.com/sirupsen/logrus"
-	"sort"
 )
 
 type (
@@ -44,7 +44,6 @@ func (s *simpleLocalSelector) SelectPublication(publications []Publication) (Pub
 		}
 	}
 
-	//median := median(viewsDepersonalized)
 	if maxRate == 0 {
 		return Publication{}, SuggestionRate(0)
 	}
@@ -52,25 +51,6 @@ func (s *simpleLocalSelector) SelectPublication(publications []Publication) (Pub
 }
 func NewLocalSelector() *simpleLocalSelector {
 	return &simpleLocalSelector{}
-}
-
-func median(data []int) int {
-	dataCopy := make([]int, len(data))
-	copy(dataCopy, data)
-
-	sort.Ints(dataCopy)
-
-	var median int
-	l := len(dataCopy)
-	if l == 0 {
-		return 0
-	} else if l%2 == 0 {
-		median = (dataCopy[l/2-1] + dataCopy[l/2]) / 2
-	} else {
-		median = dataCopy[l/2]
-	}
-
-	return median
 }
 
 type LocalSelector interface {
@@ -85,21 +65,25 @@ func NewGlobalSelector(localSelector LocalSelector) *SimpleGlobalSelector {
 	return &SimpleGlobalSelector{localSelector}
 }
 
-type PressureRate int // 0-1
-type Requirements struct {
-	AlreadySelected []PublicationId
-	pressure        PressureRate
-}
+var ErrExhausted = errors.New("all channels exhausted")
+
+const suggestionRateThreshold = 4
 
 func (s *SimpleGlobalSelector) SelectPublication(
 	candidates map[Channel][]Publication,
 	exists func(publication Publication) bool,
-) (Publication, SuggestionRate) {
+) (Publication, SuggestionRate, error) {
 	maxSuggestionRate := 0.0
 	var selectedPublication Publication
+
+	// @TODO implement cross-channel selection rules, including chanel priorities
+
 	for _, channelPublications := range candidates {
 		msg, suggestionRate := s.LocalSelector.SelectPublication(channelPublications)
 		if exists(msg) {
+			continue
+		}
+		if suggestionRate < suggestionRateThreshold {
 			continue
 		}
 		if float64(suggestionRate) > maxSuggestionRate {
@@ -107,6 +91,9 @@ func (s *SimpleGlobalSelector) SelectPublication(
 			selectedPublication = msg
 		}
 	}
+	if maxSuggestionRate == 0 {
+		return Publication{}, SuggestionRate(0), ErrExhausted
+	}
 
-	return selectedPublication, SuggestionRate(maxSuggestionRate)
+	return selectedPublication, SuggestionRate(maxSuggestionRate), nil
 }
