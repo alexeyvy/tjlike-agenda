@@ -94,7 +94,7 @@ type Requirements struct {
 func (s *SimpleGlobalSelector) SelectPublication(
 	candidates map[Channel][]Publication,
 	exists func(publication Publication) bool,
-) Publication {
+) (Publication, SuggestionRate) {
 	maxSuggestionRate := 0.0
 	var selectedPublication Publication
 	for _, channelPublications := range candidates {
@@ -108,5 +108,5 @@ func (s *SimpleGlobalSelector) SelectPublication(
 		}
 	}
 
-	return selectedPublication
+	return selectedPublication, SuggestionRate(maxSuggestionRate)
 }

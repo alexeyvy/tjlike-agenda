@@ -26,8 +26,9 @@ func NewChannel(id string) Channel {
 type Repost struct {
 	Pub        Publication
 	RepostedAt time.Time
+	Rate       SuggestionRate
 }
 
-func NewRepost(publication Publication, repostedAt time.Time) Repost {
-	return Repost{Pub: publication, RepostedAt: repostedAt}
+func NewRepost(publication Publication, repostedAt time.Time, rate SuggestionRate) Repost {
+	return Repost{Pub: publication, RepostedAt: repostedAt, Rate: rate}
 }

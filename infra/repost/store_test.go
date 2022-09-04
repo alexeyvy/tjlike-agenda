@@ -9,10 +9,10 @@ import (
 func TestInMemoryInsertAndRead(t *testing.T) {
 	s := NewInMemoryStore()
 	s.insert(&entry{
-		R: domain.NewRepost(domain.NewPublication("platform/id", 10300, time.Now()), time.Now()),
+		R: domain.NewRepost(domain.NewPublication("platform/id", 10300, time.Now()), time.Now(), domain.SuggestionRate(5)),
 	})
 	s.insert(&entry{
-		R: domain.NewRepost(domain.NewPublication("platform/id2", 10300, time.Now()), time.Now()),
+		R: domain.NewRepost(domain.NewPublication("platform/id2", 10300, time.Now()), time.Now(), domain.SuggestionRate(5)),
 	})
 
 	entries := make([]entry, 0)
@@ -29,11 +29,11 @@ func TestInMemoryInsertAndRead(t *testing.T) {
 func TestInMemoryIdSequence(t *testing.T) {
 	s := NewInMemoryStore()
 	e1 := entry{
-		R: domain.NewRepost(domain.NewPublication("platform/id", 10300, time.Now()), time.Now()),
+		R: domain.NewRepost(domain.NewPublication("platform/id", 10300, time.Now()), time.Now(), domain.SuggestionRate(5)),
 	}
 	s.insert(&e1)
 	e2 := entry{
-		R: domain.NewRepost(domain.NewPublication("platform/id2", 10300, time.Now()), time.Now()),
+		R: domain.NewRepost(domain.NewPublication("platform/id2", 10300, time.Now()), time.Now(), domain.SuggestionRate(5)),
 	}
 	s.insert(&e2)
 
@@ -50,11 +50,11 @@ func TestInMemoryDeletion(t *testing.T) {
 	s := NewInMemoryStore()
 
 	e1 := entry{
-		R: domain.NewRepost(domain.NewPublication("platform/id", 10300, time.Now()), time.Now()),
+		R: domain.NewRepost(domain.NewPublication("platform/id", 10300, time.Now()), time.Now(), domain.SuggestionRate(5)),
 	}
 	s.insert(&e1)
 	e2 := entry{
-		R: domain.NewRepost(domain.NewPublication("platform/id2", 10300, time.Now()), time.Now()),
+		R: domain.NewRepost(domain.NewPublication("platform/id2", 10300, time.Now()), time.Now(), domain.SuggestionRate(5)),
 	}
 	s.insert(&e2)
 

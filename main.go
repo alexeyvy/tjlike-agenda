@@ -56,10 +56,10 @@ type GlobalSelector interface {
 	SelectPublication(
 		candidates map[domain.Channel][]domain.Publication,
 		exists func(publication domain.Publication) bool,
-	) domain.Publication
+	) (domain.Publication, domain.SuggestionRate)
 }
 type RepostWriterService interface {
-	Repost(domain.Publication) (domain.Repost, error)
+	Repost(domain.Publication, domain.SuggestionRate) (domain.Repost, error)
 	ExistsForPublication(domain.Publication) bool
 }
 
@@ -126,9 +126,9 @@ func main() {
 
 				log.Debugf("All channels finished for platform %s", scraperPoolEntry.platformId)
 
-				best := selector.SelectPublication(collectedPublications, repostWriter.ExistsForPublication)
-				if _, err := repostWriter.Repost(best); err != nil {
-					log.Errorf("Repost succeded, however, there was an error when persisting it in the DB: %s", err)
+				best, suggestionRate := selector.SelectPublication(collectedPublications, repostWriter.ExistsForPublication)
+				if _, err := repostWriter.Repost(best, suggestionRate); err != nil {
+					log.Errorf("Repost succeeded, however, there was an error when persisting it in the DB: %s", err)
 				}
 
 				log.Infof("Picked most trending publication %s for platform %s", best.Id, scraperPoolEntry.platformId)

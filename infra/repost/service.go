@@ -50,8 +50,8 @@ func (e *PersistDBFailed) Error() string {
 	return "cannot persist DB: " + e.originalError.Error()
 }
 
-func (r *service) Repost(publication domain.Publication) (domain.Repost, error) {
-	repost := domain.NewRepost(publication, now())
+func (r *service) Repost(publication domain.Publication, rate domain.SuggestionRate) (domain.Repost, error) {
+	repost := domain.NewRepost(publication, now(), rate)
 	dbEntry := &entry{repost, false, 0}
 
 	lockableStore, isLockable := r.s.(LockableStore)

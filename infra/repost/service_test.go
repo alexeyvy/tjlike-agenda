@@ -12,7 +12,17 @@ func TestSaveAndPickup(t *testing.T) {
 	s := NewService(NewInMemoryStore())
 
 	postedAt, _ := time.Parse(time.RFC822, "02 Jan 06 15:04 MST")
-	s.Repost(domain.NewPublication("platform/id", 10300, postedAt))
+	repost, err := s.Repost(domain.NewPublication("platform/id", 10300, postedAt), domain.SuggestionRate(5))
+	if err != nil {
+		t.Errorf(
+			"Repost() threw an error: " + err.Error(),
+		)
+	}
+	if repost == (domain.Repost{}) {
+		t.Errorf(
+			"Returned repost is empty",
+		)
+	}
 
 	reposts := s.PickUpMostTrending(false)
 	if len(reposts) != 1 {
@@ -44,7 +54,7 @@ func TestPurgeIrrelevant(t *testing.T) {
 
 	currentTime = "02 Jan 06 15:06 MST"
 	postedAt, _ := time.Parse(time.RFC822, "02 Jan 06 15:04 MST")
-	s.Repost(domain.NewPublication("platform/id", 10300, postedAt))
+	_, _ = s.Repost(domain.NewPublication("platform/id", 10300, postedAt), domain.SuggestionRate(5))
 
 	currentTime = "06 Jan 06 15:06 MST"
 	err := s.PurgeIrrelevant()
