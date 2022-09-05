@@ -20,11 +20,18 @@ builds:
         goarch: arm64
 
 archives:
-  - id: default
-    files:
+    - files:
       - config.yaml
       - api.yml
-  - id: windows
-    format_overrides:
+      format_overrides:
       - goos: windows
         format: zip
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - 'README'
+      - Merge pull request
+      - Merge branch
