@@ -1,0 +1,29 @@
+openapi: 3.0.0
+info:
+  version: 0.1.0
+  title: TJlike agenda API
+  description: API to interact with the scraping application
+
+servers:
+  - url: https://localhost:35971
+
+paths:
+  /reposts:
+    get:
+      description: Returns a list of reposts collected since it was last time called
+      responses:
+        '200':
+          description: Successfully returned a list of reposts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    publication-id:
+                      type: string
+                    posted-at:
+                      type: string
+                    reposted-at:
+                      type: string

@@ -22,7 +22,8 @@ builds:
 archives:
   - id: default
     files:
-      - sources.yaml
+      - config.yaml
+      - api.yml
   - id: windows
     format_overrides:
       - goos: windows
