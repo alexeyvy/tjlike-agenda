@@ -38,9 +38,9 @@ type preferences struct {
 }
 
 func initPreferences() preferences {
-	log.Info("Reading YAML configuration at sources.yaml")
+	log.Info("Reading YAML configuration at config.yaml")
 
-	yamlFile, err := ioutil.ReadFile("sources.yaml")
+	yamlFile, err := ioutil.ReadFile("config.yaml")
 	if err != nil {
 		log.Fatalf("YAML config reading error: #%v ", err)
 	}
