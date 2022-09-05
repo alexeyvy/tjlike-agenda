@@ -18,3 +18,12 @@ builds:
         goarch: arm
       - goos: openbsd
         goarch: arm64
+
+archives:
+  - id: default
+    files:
+      - sources.yaml
+  - id: windows
+    format_overrides:
+      - goos: windows
+        format: zip
