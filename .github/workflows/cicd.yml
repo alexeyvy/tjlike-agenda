@@ -20,7 +20,7 @@ jobs:
         run: |
           go version
           go get .
-          go get -u golang.org/x/lint/golint
+          go get golang.org/x/lint/golint
 
       - name: Run build
         run: go build .
