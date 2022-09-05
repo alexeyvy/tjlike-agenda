@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - "**"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.18.0'
+
+      - name: Install dependencies
+        run: |
+          go version
+          go get .
+
+      - name: Test build
+        run: go build .
+
+      - name: Run vet & lint
+        run: |
+          go vet .
+
+      - name: Run tests
+        run: make test
