@@ -23,6 +23,9 @@ archives:
     - files:
       - config.yaml
       - api.yml
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
       format_overrides:
       - goos: windows
         format: zip
