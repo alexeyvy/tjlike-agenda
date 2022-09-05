@@ -1,11 +1,11 @@
-name: CICD
+name: ci
 
 on:
   push:
     branches:
       - "**"
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,7 +21,7 @@ jobs:
           go version
           go get .
 
-      - name: Run build
+      - name: Test build
         run: go build .
 
       - name: Run vet & lint
