@@ -20,7 +20,6 @@ jobs:
         run: |
           go version
           go get .
-          go get golang.org/x/lint/golint
 
       - name: Run build
         run: go build .
@@ -28,7 +27,6 @@ jobs:
       - name: Run vet & lint
         run: |
           go vet .
-          golint .
 
       - name: Run tests
         run: make test
