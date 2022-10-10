@@ -6,7 +6,7 @@
 * [Usage](#usage)
 * [TODOs](#todos)
 * [Contribution](#contribution)
-* [Licence](#license)
+* [License](#license)
 <!-- TOC -->
 ## Overview
 
